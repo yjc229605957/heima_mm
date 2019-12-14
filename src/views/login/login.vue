@@ -49,13 +49,68 @@
         </el-checkbox>
         <!-- 登录注册按钮 -->
         <el-form-item>
-          <el-button type="primary" @click="submitForm()">登录</el-button>
-          <el-button type="primary">注册</el-button>
+          <el-button type="success" @click="submitForm()">登录</el-button>
+          <el-button type="primary" @click="dialogFormVisible = true,getCaptcha('sign_up')">注册</el-button>
         </el-form-item>
       </el-form>
     </div>
+
     <!-- 右侧背景图 -->
-    <img src="../../assets/login_banner_ele.png" alt class="login_pic" />
+    <img src="../../assets/login_banner_ele.png" class="login_pic" />
+
+    <!-- 注册对话框 -->
+    <el-dialog title="用户注册" :visible.sync="dialogFormVisible" center>
+      <el-form :model="sign_up_Form" :rules="sign_up_rules" ref="sign_up_Form" class="sign_up_Form">
+        <el-form-item label="头像" :label-width="formLabelWidth" prop="userPic">
+          <el-upload
+            class="avatar-uploader"
+            action="http://127.0.0.1/heimamm/public//uploads"
+            :show-file-list="false"
+            :on-success="handleAvatarSuccess"
+            :before-upload="beforeAvatarUpload"
+          >
+            <img v-if="sign_up_Form.imageUrl" :src="sign_up_Form.imageUrl" class="avatar" />
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+          </el-upload>
+        </el-form-item>
+        <el-form-item label="昵称" :label-width="formLabelWidth" prop="name">
+          <el-input v-model="sign_up_Form.name" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" :label-width="formLabelWidth" prop="email">
+          <el-input v-model="sign_up_Form.email" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="手机" :label-width="formLabelWidth" prop="Phone">
+          <el-input v-model="sign_up_Form.Phone" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="密码" :label-width="formLabelWidth" prop="password">
+          <el-input show-password v-model="sign_up_Form.password" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="图形码" :label-width="formLabelWidth" prop="img_captcha">
+          <el-row>
+            <el-col :span="16">
+              <el-input v-model="sign_up_Form.img_captcha" autocomplete="off"></el-input>
+            </el-col>
+            <el-col class="captcha" :span="7" :offset="1">
+              <img :src="SUp_captchaURL" @click="getCaptcha('sign_up')" ref="sign_up_captcha" />
+            </el-col>
+          </el-row>
+        </el-form-item>
+        <el-form-item label="验证码" :label-width="formLabelWidth" prop="captcha">
+          <el-row>
+            <el-col :span="16">
+              <el-input v-model="sign_up_Form.captcha" autocomplete="off"></el-input>
+            </el-col>
+            <el-col :span="7" :offset="1">
+              <el-button @click="getUserCaptcha">获取用户验证码</el-button>
+            </el-col>
+          </el-row>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button type="primary" @click="dialogFormVisible = false">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -64,7 +119,7 @@ export default {
   name: "login",
 
   data() {
-    //手机号自定义校验规则的函数
+    //手机号自定义校验规则函数
     var checkPhone = (rule, value, callback) => {
       if (!value) {
         return callback(new Error("手机号不能为空"));
@@ -79,6 +134,24 @@ export default {
         } else {
           // 不满足 手机号的格式
           callback(new Error("老铁，你的手机号写错了噢"));
+        }
+      }
+    };
+    //邮箱自定义校验规则函数
+    var checkEmail = (rule, value, callback) => {
+      if (!value) {
+        return callback(new Error("邮箱不能为空"));
+      } else {
+        // 判断手机号的格式
+        // 正则
+        const reg = /\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/;
+        // 判断是否符合
+        // .test(验证的字符串) 返回的是 true 或者false
+        if (reg.test(value) == true) {
+          callback();
+        } else {
+          // 不满足 邮箱的格式
+          callback(new Error("老铁，你的邮箱写错了噢"));
         }
       }
     };
@@ -102,10 +175,48 @@ export default {
           { min: 4, max: 4, message: "验证码错误", trigger: "blur" }
         ]
       },
-      // 获取验证码  时间戳要记得加 &
+      // 登录框获取验证码  时间戳要记得加 &
       captchaURL: `${
         process.env.VUE_APP_BASEURL
-      }/captcha?type=login&${Date.now()}`
+      }/captcha?type=login&${Date.now()}`,
+      //注册框验证码
+      SUp_captchaURL: `${
+        process.env.VUE_APP_BASEURL
+      }/captcha?type=sendsms&${Date.now()}`,
+      // 是否显示注册对话框
+      dialogFormVisible: false,
+      // 注册对话框文字标签宽度
+      formLabelWidth: "55px",
+      //注册框数据
+      sign_up_Form: {
+        name: "",
+        email: "",
+        Phone: "",
+        password: "",
+        img_captcha: "",
+        captcha: "",
+        imageUrl: ""
+      },
+      //注册框验证规则
+      sign_up_rules: {
+        userPic: [{ required: true, message: "请上传头像" }],
+        name: [
+          { required: true, message: "请输入昵称", trigger: "blur" },
+          { min: 4, max: 16, message: "昵称长度4-16位", trigger: "change" }
+        ],
+        email: [{ required: true, validator: checkEmail, trigger: "blur" }],
+        Phone: [{ required: true, validator: checkPhone, trigger: "change" }],
+        password: [
+          { required: true, message: "请输入密码", trigger: "blur" },
+          { min: 8, max: 18, message: "密码长度8-18位", trigger: "change" }
+        ],
+        img_captcha: [
+          { min: 4, max: 4, message: "图形码长度4位", trigger: "change" }
+        ],
+        captcha: [
+          { min: 6, max: 6, message: "验证码长度6位", trigger: "change" }
+        ]
+      }
     };
   },
   methods: {
@@ -137,7 +248,7 @@ export default {
                 res.data.message == "登录密码不匹配" ||
                 res.data.message == "登录名不匹配"
               ) {
-                this.$message.error('账号或密码错误');
+                this.$message.error("账号或密码错误");
                 this.getCaptcha();
               } else {
                 //以上都不是则提示默认信息 验证码错误
@@ -156,10 +267,45 @@ export default {
       });
     },
     // 点击验证码刷新验证码
-    getCaptcha() {
-      this.captchaURL = `${
-        process.env.VUE_APP_BASEURL
-      }/captcha?type=login&${Date.now()}`;
+    getCaptcha(text) {
+      if (text == "sign_up") {
+        this.SUp_captchaURL = `${
+          process.env.VUE_APP_BASEURL
+        }/captcha?type=sendsms&${Date.now()}`;
+      } else {
+        this.captchaURL = `${
+          process.env.VUE_APP_BASEURL
+        }/captcha?type=login&${Date.now()}`;
+      }
+    },
+    //头像上传
+    handleAvatarSuccess(res, file) {
+      this.sign_up_Form.imageUrl = URL.createObjectURL(file.raw);
+    },
+    beforeAvatarUpload(file) {
+      const isJPG = file.type === "image/jpeg" || file.type === "image/png";
+      const isLt2M = file.size / 1024 / 1024 < 2;
+      if (!isJPG) {
+        this.$message.error("上传头像图片只能是 JPG 格式!");
+      }
+      if (!isLt2M) {
+        this.$message.error("上传头像图片大小不能超过 2MB!");
+      }
+      return isJPG && isLt2M;
+    },
+    //获取用户验证码
+    getUserCaptcha() {
+      this.$axios({
+        url: `${process.env.VUE_APP_BASEURL}/sendsms`,
+        method: "post",
+        data: {
+          code: this.sign_up_Form.img_captcha,
+          phone: this.sign_up_Form.Phone
+        }
+      }).then(res => {
+        window.console.log(res);
+        this.getCaptcha('sign_up')
+      });
     }
   }
 };
@@ -170,12 +316,9 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-around;
-  background: linear-gradient(
-    225deg,
-    rgba(20, 147, 250, 1),
-    rgba(1, 198, 250, 1)
-  );
+  background: linear-gradient(225deg, #1493fa, #01c6fa);
   height: 100%;
+  /* 登录盒子 */
   .from_box {
     width: 478px;
     height: 550px;
@@ -230,6 +373,59 @@ export default {
         width: 100%;
         margin: 0;
         margin-top: 28px;
+      }
+    }
+  }
+  /* 注册盒子 */
+  .el-dialog__wrapper {
+    .el-dialog {
+      width: 603px;
+      height: 768px;
+    }
+    .el-dialog__header {
+      padding: 15px;
+      background: linear-gradient(225deg, #1493fa, #01c6fa);
+      .el-dialog__title {
+        color: #fff;
+      }
+    }
+    .el-dialog__body {
+      padding: 25px 25px 10px;
+      .captcha {
+        height: 40px;
+        img {
+          height: 40px;
+          width: 100%;
+        }
+      }
+
+      /* 头像框样式 */
+      .avatar-uploader .el-upload {
+        border: 1px dashed #d9d9d9;
+        border-radius: 6px;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+      }
+      .avatar-uploader .el-upload:hover {
+        border-color: #409eff;
+      }
+      .avatar-uploader {
+        display: flex;
+        justify-content: center;
+      }
+      .avatar-uploader-icon {
+        font-size: 28px;
+        color: #8c939d;
+        width: 178px;
+        height: 178px;
+        line-height: 178px;
+        text-align: center;
+      }
+      .avatar {
+        width: 178px;
+        height: 178px;
+        display: block;
       }
     }
   }
