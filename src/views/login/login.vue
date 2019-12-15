@@ -63,6 +63,8 @@
       <el-form :model="sign_up_Form" :rules="sign_up_rules" ref="sign_up_Form" class="sign_up_Form">
         <el-form-item label="头像" :label-width="formLabelWidth" prop="userPic">
           <el-upload
+            auto-upload
+            name="image"
             class="avatar-uploader"
             action="http://127.0.0.1/heimamm/public//uploads"
             :show-file-list="false"
@@ -73,14 +75,14 @@
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
           </el-upload>
         </el-form-item>
-        <el-form-item label="昵称" :label-width="formLabelWidth" prop="name">
-          <el-input v-model="sign_up_Form.name" autocomplete="off"></el-input>
+        <el-form-item label="昵称" :label-width="formLabelWidth" prop="username">
+          <el-input v-model="sign_up_Form.username" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="邮箱" :label-width="formLabelWidth" prop="email">
           <el-input v-model="sign_up_Form.email" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="手机" :label-width="formLabelWidth" prop="Phone">
-          <el-input v-model="sign_up_Form.Phone" autocomplete="off"></el-input>
+          <el-input v-model="sign_up_Form.phone" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="密码" :label-width="formLabelWidth" prop="password">
           <el-input show-password v-model="sign_up_Form.password" autocomplete="off"></el-input>
@@ -95,10 +97,10 @@
             </el-col>
           </el-row>
         </el-form-item>
-        <el-form-item label="验证码" :label-width="formLabelWidth" prop="captcha">
+        <el-form-item label="验证码" :label-width="formLabelWidth" prop="rcode">
           <el-row>
             <el-col :span="16">
-              <el-input v-model="sign_up_Form.captcha" autocomplete="off"></el-input>
+              <el-input v-model="sign_up_Form.rcode" autocomplete="off"></el-input>
             </el-col>
             <el-col :span="7" :offset="1">
               <el-button @click="getUserCaptcha">获取用户验证码</el-button>
@@ -108,7 +110,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="dialogFormVisible = false">确 定</el-button>
+        <el-button type="primary" @click="User_register">确 定</el-button>
       </div>
     </el-dialog>
   </div>
@@ -137,6 +139,7 @@ export default {
         }
       }
     };
+
     //邮箱自定义校验规则函数
     var checkEmail = (rule, value, callback) => {
       if (!value) {
@@ -155,14 +158,16 @@ export default {
         }
       }
     };
+
     return {
       //登录框数据
       form: {
-        phone: "",
-        password: "",
-        captcha: "",
-        checked: false
+        phone: "", //手机号
+        password: "", //密码
+        captcha: "", //验证码
+        checked: false //用户协议勾选状态
       },
+
       //登录框验证规则
       rules: {
         phone: [{ required: true, validator: checkPhone, trigger: "blur" }],
@@ -175,37 +180,43 @@ export default {
           { min: 4, max: 4, message: "验证码错误", trigger: "blur" }
         ]
       },
-      // 登录框获取验证码  时间戳要记得加 &
+
+      // 打开页面 获取  登录框验证码  时间戳要记得加 '&'
       captchaURL: `${
         process.env.VUE_APP_BASEURL
       }/captcha?type=login&${Date.now()}`,
-      //注册框验证码
+
+      //打开注册框 获取  注册框验证码
       SUp_captchaURL: `${
         process.env.VUE_APP_BASEURL
       }/captcha?type=sendsms&${Date.now()}`,
+
       // 是否显示注册对话框
       dialogFormVisible: false,
+
       // 注册对话框文字标签宽度
       formLabelWidth: "55px",
+
       //注册框数据
       sign_up_Form: {
-        name: "",
-        email: "",
-        Phone: "",
-        password: "",
-        img_captcha: "",
-        captcha: "",
-        imageUrl: ""
+        username: "", //用户名
+        email: "", //邮箱
+        phone: "", //手机号
+        password: "", //密码
+        img_captcha: "", //图形码
+        rcode: "", //验证码
+        imageUrl: "", //头像预览地址
+        avatar: "" //头像上传地址
       },
+
       //注册框验证规则
       sign_up_rules: {
-        userPic: [{ required: true, message: "请上传头像" }],
-        name: [
-          { required: true, message: "请输入昵称", trigger: "blur" },
+        username: [
+          { required: true, message: "请输入昵称", trigger: "change" },
           { min: 4, max: 16, message: "昵称长度4-16位", trigger: "change" }
         ],
         email: [{ required: true, validator: checkEmail, trigger: "blur" }],
-        Phone: [{ required: true, validator: checkPhone, trigger: "change" }],
+        phone: [{ required: true, validator: checkPhone, trigger: "change" }],
         password: [
           { required: true, message: "请输入密码", trigger: "blur" },
           { min: 8, max: 18, message: "密码长度8-18位", trigger: "change" }
@@ -213,9 +224,7 @@ export default {
         img_captcha: [
           { min: 4, max: 4, message: "图形码长度4位", trigger: "change" }
         ],
-        captcha: [
-          { min: 6, max: 6, message: "验证码长度6位", trigger: "change" }
-        ]
+        rcode: [{ min: 4, max: 4, message: "验证码长度4位", trigger: "change" }]
       }
     };
   },
@@ -266,7 +275,7 @@ export default {
         }
       });
     },
-    // 点击验证码刷新验证码
+    // 点击验证码图片刷新验证码
     getCaptcha(text) {
       if (text == "sign_up") {
         this.SUp_captchaURL = `${
@@ -281,7 +290,9 @@ export default {
     //头像上传
     handleAvatarSuccess(res, file) {
       this.sign_up_Form.imageUrl = URL.createObjectURL(file.raw);
+      this.sign_up_Form.avatar = res.data.file_path;
     },
+    // 头像上传前钩子 验证图片格式大小等
     beforeAvatarUpload(file) {
       const isJPG = file.type === "image/jpeg" || file.type === "image/png";
       const isLt2M = file.size / 1024 / 1024 < 2;
@@ -293,18 +304,66 @@ export default {
       }
       return isJPG && isLt2M;
     },
-    //获取用户验证码
+    //获取用户注册验证码
     getUserCaptcha() {
-      this.$axios({
-        url: `${process.env.VUE_APP_BASEURL}/sendsms`,
-        method: "post",
-        data: {
-          code: this.sign_up_Form.img_captcha,
-          phone: this.sign_up_Form.Phone
+      // 判断图形码是否为空
+      if (this.sign_up_Form.img_captcha != "") {
+        this.$axios({
+          url: `${process.env.VUE_APP_BASEURL}/sendsms`,
+          method: "post",
+          data: {
+            code: this.sign_up_Form.img_captcha,
+            phone: this.sign_up_Form.phone
+          }
+        }).then(res => {
+          //请求成功后判断图形码是否错误 或者 手机号时候已经注册 成功则弹框提示返回的验证码
+          window.console.log(res);
+          if (res.data.message == "验证码错误") {
+            this.$message.error("图形码错误");
+            this.getCaptcha("sign_up");
+          } else if (res.data.code == 200) {
+            this.$message.success("" + res.data.data.captcha);
+          } else {
+            this.$message.error(res.data.message);
+            this.getCaptcha("sign_up");
+          }
+        });
+      } else {
+        this.$message.error("请输入正确的图形码");
+      }
+    },
+    // 用户注册
+    User_register() {
+      this.$refs.sign_up_Form.validate(valid => {
+        //判断输入框是否全部按规则填写
+        if (valid) {
+          // 输入框验证规则正确,发送注册请求
+          this.$axios({
+            url: `${process.env.VUE_APP_BASEURL}/register`,
+            method: "post",
+            data: {
+              username: this.sign_up_Form.username,
+              phone: this.sign_up_Form.phone,
+              email: this.sign_up_Form.email,
+              avatar: this.sign_up_Form.avatar,
+              password: this.sign_up_Form.password,
+              rcode: this.sign_up_Form.rcode
+            }
+          }).then(res => {
+            //如果code==200 说明注册成功
+            if (res.data.code == 200) {
+              this.$message.success("注册成功");
+              this.dialogFormVisible = false;
+            } else {
+              //如注册失败提示默认信息 然后刷新验证码
+              this.$message.error(res.data.message);
+              this.getCaptcha();
+            }
+            window.console.log(res);
+          });
+        } else {
+          return false;
         }
-      }).then(res => {
-        window.console.log(res);
-        this.getCaptcha('sign_up')
       });
     }
   }
