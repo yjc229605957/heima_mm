@@ -60,8 +60,11 @@
 
     <!-- 注册对话框 -->
     <el-dialog title="用户注册" :visible.sync="dialogFormVisible" center>
+      <!-- 注册表单内容 -->
       <el-form :model="sign_up_Form" :rules="sign_up_rules" ref="sign_up_Form" class="sign_up_Form">
+        <!-- 头像框 -->
         <el-form-item label="头像" :label-width="formLabelWidth" prop="avatar">
+          <!-- 自动上传 name:上传时的参数名 action上传地址 -->
           <el-upload
             auto-upload
             name="image"
@@ -71,23 +74,30 @@
             :on-success="handleAvatarSuccess"
             :before-upload="beforeAvatarUpload"
           >
+            <!-- 隐藏域 用于验证提示 要给display:none -->
             <el-input type="hidden" v-model="sign_up_Form.avatar"></el-input>
+            <!-- 头像上传成功后的预览图 -->
             <img v-if="sign_up_Form.imageUrl" :src="sign_up_Form.imageUrl" class="avatar" />
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
           </el-upload>
         </el-form-item>
+        <!-- 昵称框 -->
         <el-form-item label="昵称" :label-width="formLabelWidth" prop="username">
           <el-input v-model="sign_up_Form.username" autocomplete="off"></el-input>
         </el-form-item>
+        <!-- 邮箱框 -->
         <el-form-item label="邮箱" :label-width="formLabelWidth" prop="email">
           <el-input v-model="sign_up_Form.email" autocomplete="off"></el-input>
         </el-form-item>
+        <!-- 手机号框 -->
         <el-form-item label="手机" :label-width="formLabelWidth" prop="Phone">
           <el-input v-model="sign_up_Form.phone" autocomplete="off"></el-input>
         </el-form-item>
+        <!-- 密码框 -->
         <el-form-item label="密码" :label-width="formLabelWidth" prop="password">
           <el-input show-password v-model="sign_up_Form.password" autocomplete="off"></el-input>
         </el-form-item>
+        <!-- 图形码框 16:1:7 -->
         <el-form-item label="图形码" :label-width="formLabelWidth" prop="img_captcha">
           <el-row>
             <el-col :span="16">
@@ -98,21 +108,25 @@
             </el-col>
           </el-row>
         </el-form-item>
+        <!-- 验证码框 16:1:7 -->
         <el-form-item label="验证码" :label-width="formLabelWidth" prop="rcode">
           <el-row>
+            <!-- 输入框 -->
             <el-col :span="16">
               <el-input v-model="sign_up_Form.rcode" autocomplete="off"></el-input>
             </el-col>
+            <!-- 获取按钮 disabled禁用 获取后改变按钮内容显示倒计时 -->
             <el-col :span="7" :offset="1">
               <el-button
                 @click="getUserCaptcha"
                 ref="time"
                 :disabled="sign_up_Form.time!=0"
-              >{{sign_up_Form.time!=0?'还有'+sign_up_Form.time+'可以再次发送':'获取用户验证码'}}</el-button>
+              >{{sign_up_Form.time!=0?sign_up_Form.time+'s 后再次发送':'获取用户验证码'}}</el-button>
             </el-col>
           </el-row>
         </el-form-item>
       </el-form>
+      <!-- 底部提交按钮 -->
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
         <el-button type="primary" @click="User_register">确 定</el-button>
@@ -122,6 +136,9 @@
 </template>
 
 <script>
+//导入login页面api路由方法
+import { login, sendsms, register } from "../../api/login.js";
+// vue实例
 export default {
   name: "login",
 
@@ -220,7 +237,7 @@ export default {
         avatar: [{ required: true, message: "请上传头像", trigger: "change" }],
         username: [
           { required: true, message: "请输入昵称", trigger: "blur" },
-          { min: 4, max: 16, message: "昵称长度4-16位", trigger: "change" }
+          { min: 2, max: 16, message: "昵称长度2-16位", trigger: "change" }
         ],
         email: [{ required: true, validator: checkEmail, trigger: "blur" }],
         phone: [{ required: true, validator: checkPhone, trigger: "change" }],
@@ -250,14 +267,10 @@ export default {
           if (valid) {
             // 输入框验证规则正确,发送登录请求
             //测试手机号 18522222222 12345678
-            this.$axios({
-              url: `${process.env.VUE_APP_BASEURL}/login`,
-              method: "post",
-              data: {
-                phone: this.form.phone,
-                password: this.form.password,
-                code: this.form.captcha
-              }
+            login({
+              phone: this.form.phone,
+              password: this.form.password,
+              code: this.form.captcha
             }).then(res => {
               //如果code==200 说明登录成功
               if (res.data.code == 200) {
@@ -323,13 +336,9 @@ export default {
       }
       // 判断图形码是否为空
       if (this.sign_up_Form.img_captcha != "") {
-        this.$axios({
-          url: `${process.env.VUE_APP_BASEURL}/sendsms`,
-          method: "post",
-          data: {
-            code: this.sign_up_Form.img_captcha,
-            phone: this.sign_up_Form.phone
-          }
+        sendsms({
+          code: this.sign_up_Form.img_captcha,
+          phone: this.sign_up_Form.phone
         }).then(res => {
           //请求成功后判断图形码是否错误 或者 手机号是否已经注册 成功则弹框提示返回的验证码
           //发送验证码成功后
@@ -366,17 +375,13 @@ export default {
         //判断输入框是否全部按规则填写
         if (valid) {
           // 输入框验证规则正确,发送注册请求
-          this.$axios({
-            url: `${process.env.VUE_APP_BASEURL}/register`,
-            method: "post",
-            data: {
-              username: this.sign_up_Form.username,
-              phone: this.sign_up_Form.phone,
-              email: this.sign_up_Form.email,
-              avatar: this.sign_up_Form.avatar,
-              password: this.sign_up_Form.password,
-              rcode: this.sign_up_Form.rcode
-            }
+          register({
+            username: this.sign_up_Form.username,
+            phone: this.sign_up_Form.phone,
+            email: this.sign_up_Form.email,
+            avatar: this.sign_up_Form.avatar,
+            password: this.sign_up_Form.password,
+            rcode: this.sign_up_Form.rcode
           }).then(res => {
             //如果code==200 说明注册成功
             if (res.data.code == 200) {
@@ -484,6 +489,10 @@ export default {
           height: 40px;
           width: 100%;
         }
+      }
+      .el-button--default {
+        width: 100%;
+        padding: 12px 0;
       }
 
       /* 头像框样式 */
