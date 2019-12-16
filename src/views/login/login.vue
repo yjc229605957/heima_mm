@@ -253,6 +253,9 @@ export default {
           { min: 4, max: 4, message: "验证码长度4位", trigger: "change" }
         ]
       }
+
+      // 登录成功后的用户token
+      // token:'',
     };
   },
   methods: {
@@ -274,7 +277,9 @@ export default {
             }).then(res => {
               //如果code==200 说明登录成功
               if (res.data.code == 200) {
+                localStorage.setItem("token", res.data.data.token);
                 this.$message.success("登录成功");
+                this.$router.push(`/index`);
               } else if (
                 //如果错误提示为账号密码错误 改成 账号或密码错误
                 res.data.message == "登录密码不匹配" ||
