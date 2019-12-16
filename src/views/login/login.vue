@@ -61,7 +61,7 @@
     <!-- 注册对话框 -->
     <el-dialog title="用户注册" :visible.sync="dialogFormVisible" center>
       <el-form :model="sign_up_Form" :rules="sign_up_rules" ref="sign_up_Form" class="sign_up_Form">
-        <el-form-item label="头像" :label-width="formLabelWidth" prop="userPic">
+        <el-form-item label="头像" :label-width="formLabelWidth" prop="avatar">
           <el-upload
             auto-upload
             name="image"
@@ -71,6 +71,7 @@
             :on-success="handleAvatarSuccess"
             :before-upload="beforeAvatarUpload"
           >
+            <el-input type="hidden" v-model="sign_up_Form.avatar"></el-input>
             <img v-if="sign_up_Form.imageUrl" :src="sign_up_Form.imageUrl" class="avatar" />
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
           </el-upload>
@@ -103,7 +104,11 @@
               <el-input v-model="sign_up_Form.rcode" autocomplete="off"></el-input>
             </el-col>
             <el-col :span="7" :offset="1">
-              <el-button @click="getUserCaptcha">获取用户验证码</el-button>
+              <el-button
+                @click="getUserCaptcha"
+                ref="time"
+                :disabled="sign_up_Form.time!=0"
+              >{{sign_up_Form.time!=0?'还有'+sign_up_Form.time+'可以再次发送':'获取用户验证码'}}</el-button>
             </el-col>
           </el-row>
         </el-form-item>
@@ -195,7 +200,7 @@ export default {
       dialogFormVisible: false,
 
       // 注册对话框文字标签宽度
-      formLabelWidth: "55px",
+      formLabelWidth: "65px",
 
       //注册框数据
       sign_up_Form: {
@@ -206,13 +211,15 @@ export default {
         img_captcha: "", //图形码
         rcode: "", //验证码
         imageUrl: "", //头像预览地址
-        avatar: "" //头像上传地址
+        avatar: "", //头像上传地址
+        time: 0
       },
 
       //注册框验证规则
       sign_up_rules: {
+        avatar: [{ required: true, message: "请上传头像", trigger: "change" }],
         username: [
-          { required: true, message: "请输入昵称", trigger: "change" },
+          { required: true, message: "请输入昵称", trigger: "blur" },
           { min: 4, max: 16, message: "昵称长度4-16位", trigger: "change" }
         ],
         email: [{ required: true, validator: checkEmail, trigger: "blur" }],
@@ -224,7 +231,10 @@ export default {
         img_captcha: [
           { min: 4, max: 4, message: "图形码长度4位", trigger: "change" }
         ],
-        rcode: [{ min: 4, max: 4, message: "验证码长度4位", trigger: "change" }]
+        rcode: [
+          { required: true, message: "请输入验证码", trigger: "blur" },
+          { min: 4, max: 4, message: "验证码长度4位", trigger: "change" }
+        ]
       }
     };
   },
@@ -306,6 +316,11 @@ export default {
     },
     //获取用户注册验证码
     getUserCaptcha() {
+      const reg = /^(0|86|17951)?(13[0-9]|15[012356789]|166|17[3678]|18[0-9]|14[57])[0-9]{8}$/;
+      // 判断手机号格式是否正确
+      if (!reg.test(this.sign_up_Form.phone)) {
+        return this.$message.error("手机号格式不正确!");
+      }
       // 判断图形码是否为空
       if (this.sign_up_Form.img_captcha != "") {
         this.$axios({
@@ -316,13 +331,26 @@ export default {
             phone: this.sign_up_Form.phone
           }
         }).then(res => {
-          //请求成功后判断图形码是否错误 或者 手机号时候已经注册 成功则弹框提示返回的验证码
+          //请求成功后判断图形码是否错误 或者 手机号是否已经注册 成功则弹框提示返回的验证码
+          //发送验证码成功后
+
           window.console.log(res);
           if (res.data.message == "验证码错误") {
             this.$message.error("图形码错误");
             this.getCaptcha("sign_up");
           } else if (res.data.code == 200) {
-            this.$message.success("" + res.data.data.captcha);
+            //获取验证码后禁用按钮进入倒计时
+            if (this.sign_up_Form.time == 0) {
+              this.sign_up_Form.time = 60;
+              let timeID = setInterval(() => {
+                this.sign_up_Form.time--;
+                if (this.sign_up_Form.time == 0) {
+                  clearInterval(timeID);
+                }
+              }, 100);
+            }
+            //成功获得验证码后弹框提示
+            this.$message.success("验证码:" + res.data.data.captcha);
           } else {
             this.$message.error(res.data.message);
             this.getCaptcha("sign_up");
@@ -472,6 +500,9 @@ export default {
       .avatar-uploader {
         display: flex;
         justify-content: center;
+        .el-input {
+          display: none;
+        }
       }
       .avatar-uploader-icon {
         font-size: 28px;
