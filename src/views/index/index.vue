@@ -7,14 +7,19 @@
         <span>黑马面面</span>
       </div>
       <div class="right">
-        <img src="../../assets/刺客五六七1.jpg" alt />
-        <span class="userInfo">阿七，你好</span>
-        <el-button size="small" type="primary">退出</el-button>
+        <img :src="userInfo.avatar" alt />
+        <span class="userInfo">{{userInfo.username}}，你好</span>
+        <el-button size="small" type="primary" @click="userLogout">退出</el-button>
       </div>
     </el-header>
     <el-container>
       <el-aside width="auto">
-        <el-menu :default-active="$route.path" class="el-menu-vertical-demo" :collapse="isCollapse" router>
+        <el-menu
+          :default-active="$route.path"
+          class="el-menu-vertical-demo"
+          :collapse="isCollapse"
+          router
+        >
           <el-menu-item index="/index/chart">
             <i class="el-icon-pie-chart"></i>
             <span slot="title">数据概览</span>
@@ -38,7 +43,7 @@
         </el-menu>
       </el-aside>
       <el-main>
-      <!-- 设置嵌套子路由出口 -->
+        <!-- 设置嵌套子路由出口 -->
         <router-view></router-view>
       </el-main>
     </el-container>
@@ -46,17 +51,18 @@
 </template>
 
 <script>
-// import {userInfo} from '../../api/index';
+import { removeToken } from "../../utils/token";
+import { userLogout } from "../../api/user.js";
 export default {
   data() {
     return {
       isCollapse: false,
       iconClass: "el-icon-s-fold",
-      token: localStorage.getItem("token"),
-
+      userInfo: ""
     };
   },
   methods: {
+    //点击左上角列表图标 进行列表的缩放和改变
     iconTrrag() {
       this.isCollapse = !this.isCollapse;
       if (this.iconClass == "el-icon-s-fold") {
@@ -64,15 +70,34 @@ export default {
       } else {
         this.iconClass = "el-icon-s-fold";
       }
+    },
+    //退出按钮 用户退出登录
+    userLogout() {
+      //根据用户点击按钮进行下一步
+      this.$confirm("是否要登出账号?", "温馨提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      }).then(() => {
+        //点击确认按钮 发送退出登录请求
+        userLogout().then(res => {
+          window.console.log(res);
+          //退出成功后 提示退出成功 并删除token后转跳到登录页
+          if (res.data.code === 200) {
+            this.$message({
+              type: "success",
+              message: "退出成功!"
+            });
+            removeToken();
+            this.$router.push("/login");
+          }
+        });
+      });
     }
   },
-  // created(){
-  //   userInfo({
-  //     token:localStorage.getItem("token")
-  //   }).then(res=>{
-  //     window.console.log(res)
-  //   })
-  // }
+  created() {
+    this.userInfo = this.$store.state.userInfo;
+  }
 };
 </script>
 

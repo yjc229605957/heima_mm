@@ -14,8 +14,8 @@
           </el-form-item>
           <el-form-item label="状态">
             <el-select v-model="formInline.region">
-              <el-option label="区域一" value="shanghai"></el-option>
-              <el-option label="区域二" value="beijing"></el-option>
+              <el-option label="禁用" value="shanghai"></el-option>
+              <el-option label="启用" value="beijing"></el-option>
             </el-select>
           </el-form-item>
           <el-form-item>
@@ -32,14 +32,14 @@
     </div>
     <div class="subjectList">
       <el-card class="box-card">
-        <el-table :data="tableData" style="width: 100%">
-          <el-table-column prop="NO" label="序号" width="50"></el-table-column>
-          <el-table-column prop="number" label="学科编号" width="160"></el-table-column>
-          <el-table-column prop="name" label="学科名称" width="160"></el-table-column>
-          <el-table-column prop="forShort" label="简称" width="155"></el-table-column>
-          <el-table-column prop="creator" label="创建者" width="160"></el-table-column>
-          <el-table-column prop="date" label="创建日期" width="135"></el-table-column>
-          <el-table-column prop="status" label="状态" width="160"></el-table-column>
+        <el-table :data="tableData" style="width:100%" >
+          <el-table-column prop="NO" label="序号" width=70></el-table-column>
+          <el-table-column prop="number" label="学科编号" ></el-table-column>
+          <el-table-column prop="name" label="学科名称" ></el-table-column>
+          <el-table-column prop="forShort" label="简称" ></el-table-column>
+          <el-table-column prop="creator" label="创建者" ></el-table-column>
+          <el-table-column prop="date" label="创建日期" ></el-table-column>
+          <el-table-column prop="status" label="状态" ></el-table-column>
           <el-table-column label="操作">
             <template slot-scope="scope">
               <el-button type="text" size="small">编辑</el-button>
@@ -47,6 +47,16 @@
             </template>
           </el-table-column>
         </el-table>
+        <el-pagination
+          background
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="currentPage4"
+          :page-sizes="[100, 200, 300, 400]"
+          :page-size="100"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="400"
+        ></el-pagination>
       </el-card>
     </div>
   </div>
@@ -109,13 +119,16 @@ export default {
     width: 70px;
   }
   .el-form-item:nth-child(7) .el-form-item__content {
-    width: 120p x;
+    width: 120px;
   }
 }
 .subjectList {
   width: 100%;
   .box-card {
     height: auto;
+  }
+  .el-pagination{
+    text-align: center;
   }
 }
 </style>

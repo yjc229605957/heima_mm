@@ -1,6 +1,8 @@
 //导包
 import axios from 'axios'
 
+// 导入token工具函数
+import { getToken } from '../utils/token';
 // 统一设置 axios的设置
 // axios.defaults 只能设置一个 axios对象
 // 如果项目中 可能用到多个 axios 支持创建一个
@@ -11,11 +13,23 @@ const instance = axios.create({
   //跨域携带cookie
   withCredentials: true
 })
-//暴露出去 登录请求方法
-export function userInfo(params){
+//暴露出去 获取用户信息请求方法
+export function userInfo() {
   return instance({
-    url:'/userInfo',
+    url: '/info',
+    method: 'get',
+    headers: {
+      token: getToken()
+    }
+  })
+}
+//暴露出去 用户退出登录请求方法
+export function userLogout(){
+  return instance({
+    url:'/logout',
     method:'get',
-    params
+    headers:{
+      token:getToken()
+    }
   })
 }

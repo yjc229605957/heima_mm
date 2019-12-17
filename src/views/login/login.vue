@@ -69,7 +69,7 @@
             auto-upload
             name="image"
             class="avatar-uploader"
-            action="http://127.0.0.1/heimamm/public//uploads"
+            action="http://127.0.0.1/heimamm/public/uploads"
             :show-file-list="false"
             :on-success="handleAvatarSuccess"
             :before-upload="beforeAvatarUpload"
@@ -138,6 +138,7 @@
 <script>
 //导入login页面api路由方法
 import { login, sendsms, register } from "../../api/login.js";
+import { setToken } from "../../utils/token.js";
 // vue实例
 export default {
   name: "login",
@@ -277,7 +278,7 @@ export default {
             }).then(res => {
               //如果code==200 说明登录成功
               if (res.data.code == 200) {
-                localStorage.setItem("token", res.data.data.token);
+                setToken(res.data.data.token);
                 this.$message.success("登录成功");
                 this.$router.push(`/index`);
               } else if (
