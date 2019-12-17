@@ -14,7 +14,7 @@
     </el-header>
     <el-container>
       <el-aside width="auto">
-        <el-menu default-active="/index/subject" class="el-menu-vertical-demo" :collapse="isCollapse" router>
+        <el-menu :default-active="$route.path" class="el-menu-vertical-demo" :collapse="isCollapse" router>
           <el-menu-item index="/index/chart">
             <i class="el-icon-pie-chart"></i>
             <span slot="title">数据概览</span>
@@ -52,7 +52,8 @@ export default {
     return {
       isCollapse: false,
       iconClass: "el-icon-s-fold",
-      token: localStorage.getItem("token")
+      token: localStorage.getItem("token"),
+
     };
   },
   methods: {
