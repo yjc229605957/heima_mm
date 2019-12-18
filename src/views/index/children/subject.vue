@@ -3,27 +3,27 @@
     <!-- 搜索栏 -->
     <div class="serachBar">
       <el-card class="box-card">
-        <el-form :inline="true" :model="formInline" class="demo-form-inline">
-          <el-form-item label="学科编号">
-            <el-input v-model="formInline.user"></el-input>
+        <el-form :inline="true" :model="formInline" class="demo-form-inline" ref="searchForm">
+          <el-form-item label="学科编号" prop="rid">
+            <el-input v-model="formInline.rid"></el-input>
           </el-form-item>
-          <el-form-item label="学科名称">
-            <el-input v-model="formInline.user"></el-input>
+          <el-form-item label="学科名称" prop="name">
+            <el-input v-model="formInline.name"></el-input>
           </el-form-item>
-          <el-form-item label="创建者">
-            <el-input v-model="formInline.user"></el-input>
+          <el-form-item label="创建者" prop="username">
+            <el-input v-model="formInline.username"></el-input>
           </el-form-item>
-          <el-form-item label="状态">
-            <el-select v-model="formInline.region">
-              <el-option label="禁用" value="shanghai"></el-option>
-              <el-option label="启用" value="beijing"></el-option>
+          <el-form-item label="状态" prop="status">
+            <el-select v-model="formInline.status">
+              <el-option label="禁用" value="0"></el-option>
+              <el-option label="启用" value="1"></el-option>
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="onSubject">查询</el-button>
+            <el-button type="primary" @click="SubList">查询</el-button>
           </el-form-item>
           <el-form-item>
-            <el-button>清除</el-button>
+            <el-button @click="resetForm()">清除</el-button>
           </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="addBut" icon="el-icon-plus">新增学科</el-button>
@@ -31,7 +31,7 @@
         </el-form>
       </el-card>
     </div>
-    <!-- 学科列表分页 -->
+    <!-- 学科列表 -->
     <div class="subjectList">
       <el-card class="box-card">
         <el-table :data="tableData" style="width:100%">
@@ -51,17 +51,18 @@
           </el-table-column>
           <el-table-column label="操作">
             <template slot-scope="scope">
-              <el-button type="text" size="small">编辑</el-button>
+              <el-button type="text" size="medium" @click="editBut">编辑</el-button>
               <el-button
                 type="text"
-                size="small"
-                @click="changeState(scope.row)"
+                size="medium"
+                @click="changeState(scope.row.id)"
                 :style="{color:scope.row.status === 0?'#46A0FF':'red'}"
               >{{scope.row.status === 0 ? "启用" : "禁用"}}</el-button>
-              <el-button @click="handleClick(scope.row.id)" type="text" size="small">删除</el-button>
+              <el-button @click="handleClick(scope.row.id)" type="text" size="medium">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
+        <!-- 分页插件 -->
         <el-pagination
           background
           @size-change="handleSizeChange"
@@ -75,9 +76,15 @@
       </el-card>
     </div>
     <!-- 新增学科窗口 -->
-    <el-dialog title="新增学科" :visible.sync="dialogFormVisible" center>
+    <el-dialog :title="dialogFormTitle" :visible.sync="dialogFormVisible" center>
       <!-- 注册表单内容 -->
-      <el-form :model="addForm" :rules="addrules" ref="addForm" class="addForm">
+      <el-form
+        :model="addForm"
+        :rules="addrules"
+        ref="addForm"
+        class="addForm"
+        v-if="dialogFormTitle == '新增学科'"
+      >
         <!-- 学科编号 -->
         <el-form-item label="学科编号" :label-width="formLabelWidth" prop="rid">
           <el-input v-model="addForm.rid" autocomplete="off"></el-input>
@@ -99,36 +106,75 @@
           <el-input v-model="addForm.remark" autocomplete="off"></el-input>
         </el-form-item>
       </el-form>
+      <el-form :model="editForm" :rules="editrules" ref="editForm" class="editForm" v-else>
+        <!-- 学科编号 -->
+        <el-form-item label="学科编号" :label-width="formLabelWidth" prop="rid">
+          <el-input v-model="editForm.rid" autocomplete="off"></el-input>
+        </el-form-item>
+        <!-- 学科名称 -->
+        <el-form-item label="学科名称" :label-width="formLabelWidth" prop="name">
+          <el-input v-model="editForm.name" autocomplete="off"></el-input>
+        </el-form-item>
+        <!-- 学科简称 -->
+        <el-form-item label="学科简称" :label-width="formLabelWidth">
+          <el-input v-model="editForm.short_name" autocomplete="off"></el-input>
+        </el-form-item>
+        <!-- 学科简介 -->
+        <el-form-item label="学科简介" :label-width="formLabelWidth">
+          <el-input v-model="editForm.intro" autocomplete="off"></el-input>
+        </el-form-item>
+        <!-- 学科备注 -->
+        <el-form-item label="学科备注1" :label-width="formLabelWidth">
+          <el-input v-model="editForm.remark" autocomplete="off"></el-input>
+        </el-form-item>
+      </el-form>
       <!-- 底部提交按钮 -->
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="addSubject">确 定</el-button>
+        <el-button type="primary" @click="addSubject" v-if="dialogFormTitle == '新增学科'">确 定</el-button>
+        <el-button type="primary" @click="editSubject" v-else>确 定</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import { subjectList, subjectAdd } from "../../../api/subject";
+//导入axios接口
+import {
+  subjectList, //学科列表接口
+  subjectAdd, //学科新增接口
+  subjectStatus, //学科状态接口
+  subjectRemove, //学科删除接口
+  subjectEdit //学科编辑接口
+} from "../../../api/subject";
 export default {
   name: "subject",
   data() {
     return {
+      //搜索栏数据
       formInline: {
-        user: "",
-        region: ""
+        rid: "", //学科编号
+        name: "", //学科名称
+        username: "", //创建者
+        status: "", //状态
+        page: "", //当前页数
+        limit: 7 //每页显示条数
       },
+
+      // 学科列表数据
       tableData: [],
       //当前页数
       page: 1,
       //总页数
-      pageCount: 10,
+      pageCount: 1,
       //每页条数
       pageSize: 7,
       //总条数
       total: 1,
-      // 新增学科窗口
+      // 新增/编辑学科窗口是否显示
       dialogFormVisible: false,
+      //窗口标题
+      dialogFormTitle: "",
       // 新增学科数据
       addForm: {
         rid: "",
@@ -142,18 +188,25 @@ export default {
         rid: [{ required: true, message: "请输入学科编号", trigger: "change" }],
         name: [{ required: true, message: "请输入学科名称", trigger: "change" }]
       },
-      // 新增窗口文字标签宽度
-      formLabelWidth: "80px"
+      // 窗口文字标签宽度
+      formLabelWidth: "80px",
+      // 编辑学科数据
+      editForm: {
+        id: "",
+        name: "",
+        tag: "",
+        remark: ""
+      },
+      editrules: {
+        rid: [{ required: true, message: "请输入学科编号", trigger: "change" }],
+        name: [{ required: true, message: "请输入学科名称", trigger: "change" }]
+      }
     };
   },
   methods: {
     //获取学科列表
     SubList() {
-      subjectList({
-        page: this.page, //当前页数
-        limit: this.pageSize //每页显示条数
-      }).then(res => {
-        window.console.log(res);
+      subjectList(this.formInline).then(res => {
         if (res.data.code === 200) {
           this.tableData = res.data.data.items;
           this.pageCount = res.data.data.pagination.page;
@@ -161,13 +214,23 @@ export default {
         }
       });
     },
-    //点击查询方法
-    onSubject() {},
+    // 点击搜索栏清空按钮 清空条件后重新获取列表
+    resetForm() {
+      this.$refs.searchForm.resetFields();
+      this.SubList();
+    },
     // 点击新增按钮
     addBut() {
       this.dialogFormVisible = true;
+      this.dialogFormTitle = "新增学科";
     },
-    //点击新增方法
+    //点击编辑按钮
+    editBut() {
+      this.dialogFormVisible = true;
+      this.dialogFormTitle = "编辑学科";
+      // const newObj =  JSON.parse(JSON.stringify({name:"jack",age:18}));
+    },
+    // 新增窗口 点击确定方法
     addSubject() {
       subjectAdd(this.addForm).then(res => {
         window.console.log(res);
@@ -175,24 +238,56 @@ export default {
           this.dialogFormVisible = false;
           this.$message.success("新增成功");
           this.SubList();
+        } else {
+          if (res.data.message == "rid已存在") {
+            this.$message.error("学科编号已存在");
+          }
         }
       });
       window.console.log("111");
     },
+    // 编辑窗口 点击确定方法
+    editSubject() {
+      subjectEdit(this.editForm).then(res => {
+        window.console.log(res);
+      });
+    },
+    // 点击 禁用/启用 按钮
+    changeState(id) {
+      subjectStatus(id).then(res => {
+        if (res.data.code === 200) {
+          this.SubList();
+          this.$message.success("设置成功");
+        }
+      });
+    },
+    // 点击 删除 按钮
+    handleClick(id) {
+      this.$confirm("是否要删除该学科?", "温馨提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      }).then(() => {
+        subjectRemove(id).then(res => {
+          if (res.data.code === 200) {
+            this.SubList();
+            this.$message.success("删除成功");
+          }
+        });
+      });
+    },
     //分页插件 页码大小发生变动时触发的函数
     handleSizeChange(val) {
-      this.pageSize = val;
+      this.formInline.limit = val; //每页显示多少条
       this.SubList();
-      window.console.log(`每页 ${val} 条`);
     },
     //分页插件 当前页发生变动时触发的函数
     handleCurrentChange(val) {
-      this.page = val;
+      this.formInline.page = val; //当前页
       this.SubList();
-      window.console.log(`当前页: ${val}`);
     }
   },
-  //已进入页面发送请求后去学科列表
+  //一进入页面发送请求获取学科列表
   created() {
     this.SubList();
   }

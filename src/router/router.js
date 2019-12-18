@@ -97,7 +97,6 @@ router.beforeEach((to, from, next) => {
       //如果有token就继续下一个验证
       //next()
       userInfo().then(res => {
-        window.console.log(res);
         if (res.data.code === 200) {
           //如果token正确则跳转到首页并把数据存入vuex仓库
           next()

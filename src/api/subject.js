@@ -49,24 +49,24 @@ export function subjectEdit(data) {
   })
 }
 //暴露出去 删除学科请求方法
-export function subjectRemove(data) {
+export function subjectRemove(id) {
   return instance({
     url: '/subject/remove',
     method: 'post',
     headers: {
       token: getToken()
     },
-    data
+    data:{id}
   })
 }
 //暴露出去 学科状态请求方法
-export function subjectStatus(data) {
+export function subjectStatus(id) {
   return instance({
     url: '/subject/status',
     method: 'post',
     headers: {
       token: getToken()
     },
-    data
+    data:{id}
   })
 }
