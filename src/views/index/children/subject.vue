@@ -35,18 +35,30 @@
     <div class="subjectList">
       <el-card class="box-card">
         <el-table :data="tableData" style="width:100%">
-          <el-table-column prop="status" label="序号" width="70"></el-table-column>
+          <el-table-column type="index" label="序号" width="70"></el-table-column>
           <el-table-column prop="rid" label="学科编号"></el-table-column>
           <el-table-column prop="name" label="学科名称"></el-table-column>
           <el-table-column prop="short_name" label="简称"></el-table-column>
           <el-table-column prop="username" label="创建者"></el-table-column>
-          <el-table-column prop="update_time" label="创建日期"></el-table-column>
-          <el-table-column prop="status" label="状态"></el-table-column>
+          <el-table-column prop="create_time" label="创建日期">
+            <template slot-scope="scope">{{ scope.row.create_time | formatTime }}</template>
+          </el-table-column>
+          <el-table-column prop="status" label="状态">
+            <template slot-scope="scope">
+              <span v-if="scope.row.status === 1">启用</span>
+              <span v-else :style="{color:scope.row.status === 1?'#ccc':'red'}">禁用</span>
+            </template>
+          </el-table-column>
           <el-table-column label="操作">
             <template slot-scope="scope">
               <el-button type="text" size="small">编辑</el-button>
-              <el-button @click="handleClick(scope.row)" type="text" size="small">禁用</el-button>
-              <el-button @click="handleClick(scope.row)" type="text" size="small">删除</el-button>
+              <el-button
+                type="text"
+                size="small"
+                @click="changeState(scope.row)"
+                :style="{color:scope.row.status === 0?'#46A0FF':'red'}"
+              >{{scope.row.status === 0 ? "启用" : "禁用"}}</el-button>
+              <el-button @click="handleClick(scope.row.id)" type="text" size="small">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -56,7 +68,7 @@
           @current-change="handleCurrentChange"
           :current-page="page"
           :page-sizes="[7, 12, 30, 50]"
-          :page-size=pageSize
+          :page-size="pageSize"
           layout="total, sizes, prev, pager, next, jumper"
           :total="total"
         ></el-pagination>
@@ -112,7 +124,7 @@ export default {
       //总页数
       pageCount: 10,
       //每页条数
-      pageSize:7,
+      pageSize: 7,
       //总条数
       total: 1,
       // 新增学科窗口
@@ -138,8 +150,8 @@ export default {
     //获取学科列表
     SubList() {
       subjectList({
-        page:this.page, //当前页数
-        limit:this.pageSize, //每页显示条数
+        page: this.page, //当前页数
+        limit: this.pageSize //每页显示条数
       }).then(res => {
         window.console.log(res);
         if (res.data.code === 200) {
@@ -169,14 +181,14 @@ export default {
     },
     //分页插件 页码大小发生变动时触发的函数
     handleSizeChange(val) {
-      this.pageSize = val
-      this.SubList()
+      this.pageSize = val;
+      this.SubList();
       window.console.log(`每页 ${val} 条`);
     },
     //分页插件 当前页发生变动时触发的函数
     handleCurrentChange(val) {
-      this.page = val
-      this.SubList()
+      this.page = val;
+      this.SubList();
       window.console.log(`当前页: ${val}`);
     }
   },

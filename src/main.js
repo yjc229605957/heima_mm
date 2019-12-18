@@ -7,6 +7,8 @@ import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 // 导入vuex仓库
 import store from './store/store';
+// 导入filters全局过滤器
+import filters from './filters/filters';
 // 注册一下
 Vue.use(ElementUI);
 
@@ -22,5 +24,7 @@ new Vue({
   //将router挂载到vue实例中
   router,
   //将store挂载到vue实例中
-  store
+  store,
+  //将filters全局过滤器挂载到vue实例中
+  filters
 }).$mount('#app')
