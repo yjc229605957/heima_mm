@@ -23,10 +23,10 @@
             <el-button type="primary" @click="SubList">查询</el-button>
           </el-form-item>
           <el-form-item>
-            <el-button @click="resetForm()">清除</el-button>
+            <el-button @click="resetForm">清除</el-button>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="addBut" icon="el-icon-plus">新增学科</el-button>
+            <el-button type="primary" @click="addSubBut" icon="el-icon-plus">新增学科</el-button>
           </el-form-item>
         </el-form>
       </el-card>
@@ -51,7 +51,7 @@
           </el-table-column>
           <el-table-column label="操作">
             <template slot-scope="scope">
-              <el-button type="text" size="medium" @click="editBut">编辑</el-button>
+              <el-button type="text" size="medium" @click="editBut(scope.row)">编辑</el-button>
               <el-button
                 type="text"
                 size="medium"
@@ -68,7 +68,7 @@
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
           :current-page="page"
-          :page-sizes="[7, 12, 30, 50]"
+          :page-sizes="[7, 10, 20, 30]"
           :page-size="pageSize"
           layout="total, sizes, prev, pager, next, jumper"
           :total="total"
@@ -77,7 +77,7 @@
     </div>
     <!-- 新增学科窗口 -->
     <el-dialog :title="dialogFormTitle" :visible.sync="dialogFormVisible" center>
-      <!-- 注册表单内容 -->
+      <!-- 新增表单内容 -->
       <el-form
         :model="addForm"
         :rules="addrules"
@@ -106,6 +106,7 @@
           <el-input v-model="addForm.remark" autocomplete="off"></el-input>
         </el-form-item>
       </el-form>
+      <!-- 编辑窗口 -->
       <el-form :model="editForm" :rules="editrules" ref="editForm" class="editForm" v-else>
         <!-- 学科编号 -->
         <el-form-item label="学科编号" :label-width="formLabelWidth" prop="rid">
@@ -192,15 +193,14 @@ export default {
       formLabelWidth: "80px",
       // 编辑学科数据
       editForm: {
-        id: "",
-        name: "",
-        tag: "",
-        remark: ""
       },
+      // 编辑窗口验证规则
       editrules: {
         rid: [{ required: true, message: "请输入学科编号", trigger: "change" }],
         name: [{ required: true, message: "请输入学科名称", trigger: "change" }]
-      }
+      },
+      //编辑按钮id
+      edit_id:'',
     };
   },
   methods: {
@@ -220,15 +220,16 @@ export default {
       this.SubList();
     },
     // 点击新增按钮
-    addBut() {
+    addSubBut() {
       this.dialogFormVisible = true;
       this.dialogFormTitle = "新增学科";
     },
     //点击编辑按钮
-    editBut() {
+    editBut(obj) {
       this.dialogFormVisible = true;
       this.dialogFormTitle = "编辑学科";
-      // const newObj =  JSON.parse(JSON.stringify({name:"jack",age:18}));
+      this.editForm = JSON.parse(JSON.stringify(obj));
+      window.console.log(this.editForm)
     },
     // 新增窗口 点击确定方法
     addSubject() {
@@ -250,6 +251,15 @@ export default {
     editSubject() {
       subjectEdit(this.editForm).then(res => {
         window.console.log(res);
+        if (res.data.code === 200) {
+          this.dialogFormVisible = false;
+          this.$message.success("编辑成功");
+          this.SubList();
+        } else {
+          if (res.data.message == "rid已存在") {
+            this.$message.error("学科编号已存在");
+          }
+        }
       });
     },
     // 点击 禁用/启用 按钮
@@ -320,6 +330,7 @@ export default {
   }
   .el-pagination {
     text-align: center;
+    padding-top:20px; 
   }
 }
 // 新增窗口样式
