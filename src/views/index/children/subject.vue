@@ -20,7 +20,7 @@
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="SubList">查询</el-button>
+            <el-button type="primary" @click="sercahBut">查询</el-button>
           </el-form-item>
           <el-form-item>
             <el-button @click="resetForm">清除</el-button>
@@ -140,7 +140,7 @@
 </template>
 
 <script>
-//导入axios接口
+//导入subject axios接口
 import {
   subjectList, //学科列表接口
   subjectAdd, //学科新增接口
@@ -158,7 +158,7 @@ export default {
         name: "", //学科名称
         username: "", //创建者
         status: "", //状态
-        page: "", //当前页数
+        page: 1, //当前页数
         limit: 7 //每页显示条数
       },
 
@@ -192,27 +192,32 @@ export default {
       // 窗口文字标签宽度
       formLabelWidth: "80px",
       // 编辑学科数据
-      editForm: {
-      },
+      editForm: {},
       // 编辑窗口验证规则
       editrules: {
         rid: [{ required: true, message: "请输入学科编号", trigger: "change" }],
         name: [{ required: true, message: "请输入学科名称", trigger: "change" }]
       },
       //编辑按钮id
-      edit_id:'',
+      edit_id: ""
     };
   },
   methods: {
-    //获取学科列表
+    //获取学科列表方法
     SubList() {
       subjectList(this.formInline).then(res => {
         if (res.data.code === 200) {
           this.tableData = res.data.data.items;
-          this.pageCount = res.data.data.pagination.page;
+          this.page = +res.data.data.pagination.page;
           this.total = res.data.data.pagination.total;
         }
       });
+    },
+    // 点击搜索按钮 按条件搜索
+    sercahBut() {
+      this.formInline.page = 1;
+      this.page = 1;
+      this.SubList();
     },
     // 点击搜索栏清空按钮 清空条件后重新获取列表
     resetForm() {
@@ -229,7 +234,7 @@ export default {
       this.dialogFormVisible = true;
       this.dialogFormTitle = "编辑学科";
       this.editForm = JSON.parse(JSON.stringify(obj));
-      window.console.log(this.editForm)
+      window.console.log(this.editForm);
     },
     // 新增窗口 点击确定方法
     addSubject() {
@@ -293,7 +298,7 @@ export default {
     },
     //分页插件 当前页发生变动时触发的函数
     handleCurrentChange(val) {
-      this.formInline.page = val; //当前页
+      this.formInline.page  = val; //当前页
       this.SubList();
     }
   },
@@ -330,7 +335,7 @@ export default {
   }
   .el-pagination {
     text-align: center;
-    padding-top:20px; 
+    padding-top: 20px;
   }
 }
 // 新增窗口样式

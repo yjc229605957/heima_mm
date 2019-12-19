@@ -20,7 +20,7 @@
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="EntList">查询</el-button>
+            <el-button type="primary" @click="EntSerach">查询</el-button>
           </el-form-item>
           <el-form-item>
             <el-button @click="resetForm">清除</el-button>
@@ -45,7 +45,7 @@
           <el-table-column prop="status" label="状态">
             <template slot-scope="scope">
               <span v-if="scope.row.status === 1">启用</span>
-              <span v-else :style="{color:scope.row.status === 1?'#ccc':'red'}">禁用</span>
+              <span v-else :style="{color:'red'}">禁用</span>
             </template>
           </el-table-column>
           <el-table-column label="操作">
@@ -160,36 +160,7 @@ export default {
         status: ""
       },
       //企业列表数据
-      tableData: [
-        {
-          id: 23,
-          eid: "TX",
-          name: "腾讯集团",
-          short_name: "鹅厂",
-          intro: "中国最大网络游戏公司",
-          user_id: 60,
-          remark: "",
-          status: 1,
-          create_time: "2019-12-18 16:42:31",
-          update_time: "2019-12-18 16:42:31",
-          is_del: 0,
-          username: "阿七"
-        },
-        {
-          id: 22,
-          eid: "ALBB",
-          name: "阿里巴巴",
-          short_name: "阿里",
-          intro: "全球最大电商平台",
-          user_id: 60,
-          remark: "",
-          status: 1,
-          create_time: "2019-12-18 16:41:36",
-          update_time: "2019-12-18 16:41:36",
-          is_del: 0,
-          username: "阿七"
-        }
-      ],
+      tableData: [],
       //当前页数
       page: 1,
       //总页数
@@ -230,11 +201,18 @@ export default {
   },
   methods: {
     //搜索栏查询按钮
+    EntSerach() {
+      this.formInline.page = 1 
+      this.page = 1;
+      this.EntList()
+    },
+    //企业数据列表
     EntList() {
+      // this.formInline.page = 1 
       enterpriseList(this.formInline).then(res => {
         if (res.data.code === 200) {
           this.tableData = res.data.data.items;
-          this.pageCount = res.data.data.pagination.page;
+          this.page = +res.data.data.pagination.page;
           this.total = res.data.data.pagination.total;
         }
       });

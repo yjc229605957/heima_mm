@@ -280,7 +280,7 @@ export default {
               if (res.data.code == 200) {
                 setToken(res.data.data.token);
                 this.$message.success("登录成功");
-                this.$router.push(`/index`);
+                this.$router.push('/index');
               } else if (
                 //如果错误提示为账号密码错误 改成 账号或密码错误
                 res.data.message == "登录密码不匹配" ||
