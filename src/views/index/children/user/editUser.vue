@@ -25,8 +25,8 @@
       </el-form-item>
       <el-form-item label="状态" :label-width="formLabelWidth" prop="status">
         <el-select v-model="editUserForm.status">
-          <el-option label="启用" value="1"></el-option>
-          <el-option label="禁用" value="0"></el-option>
+          <el-option label="启用" :value="1"></el-option>
+          <el-option label="禁用" :value="0"></el-option>
         </el-select>
       </el-form-item>
       <!-- 用户备注框 -->
@@ -43,6 +43,7 @@
 </template>
 
 <script>
+import { userEdit } from "../../../../api/user";
 export default {
   data() {
     //手机号自定义校验规则函数
@@ -97,13 +98,21 @@ export default {
           { min: 2, max: 16, message: "昵称长度2-16位", trigger: "change" }
         ],
         email: [{ required: true, validator: checkEmail, trigger: "blur" }],
-        phone: [{ required: true, validator: checkPhone, trigger: "change" }],
-        
+        phone: [{ required: true, validator: checkPhone, trigger: "change" }]
       }
     };
   },
   methods: {
-    editUser() {}
+    editUser() {
+      userEdit(this.editUserForm).then(res => {
+        window.console.log(res);
+        if (res.data.code == 200) {
+          this.$message.success("编辑成功!");
+          this.editFormVisible = false;
+          this.$parent.getData();
+        }
+      });
+    }
   }
 };
 </script>

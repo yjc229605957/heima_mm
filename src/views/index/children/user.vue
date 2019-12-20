@@ -106,6 +106,7 @@ export default {
         limit: this.page_size,
         ...this.formInline
       }).then(res => {
+        window.console.log(res)
         this.tableData = res.data.data.items;
         this.page = +res.data.data.pagination.page;
         this.total = res.data.data.pagination.total;
@@ -152,6 +153,7 @@ export default {
     },
     // 分页 每页条数变化
     handleSizeChange(val) {
+      this.page = 1
       this.page_size = val;
       this.getData();
     },
