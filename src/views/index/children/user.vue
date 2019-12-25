@@ -46,13 +46,15 @@
         </el-table-column>
         <el-table-column label="操作">
           <template slot-scope="scope">
-            <el-button type="text" @click="editUserBut(scope.row)">编辑</el-button>
+            <!-- v-power权限黑名单 匹配名单再内的角色不显示该功能 -->
+            <el-button type="text" v-power="['管理员','学生','老师']" @click="editUserBut(scope.row)">编辑</el-button>
             <el-button
+              v-power="['学生','老师']"
               @click="changeStatus(scope.row.id)"
               type="text"
               :style="{color:scope.row.status == 1?'red':'#409EFF'}"
             >{{scope.row.status == 1?'禁用':'启用'}}</el-button>
-            <el-button type="text" @click="removeUser(scope.row.id)">删除</el-button>
+            <el-button type="text" v-power="['管理员','学生','老师']" @click="removeUser(scope.row.id)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -106,7 +108,7 @@ export default {
         limit: this.page_size,
         ...this.formInline
       }).then(res => {
-        window.console.log(res)
+        window.console.log(res);
         this.tableData = res.data.data.items;
         this.page = +res.data.data.pagination.page;
         this.total = res.data.data.pagination.total;
@@ -123,9 +125,9 @@ export default {
       this.getData();
     },
     //点击编辑按钮
-    editUserBut(obj){
-      this.$refs.editUser.editFormVisible = true
-      this.$refs.editUser.editUserForm = JSON.parse(JSON.stringify(obj))
+    editUserBut(obj) {
+      this.$refs.editUser.editFormVisible = true;
+      this.$refs.editUser.editUserForm = JSON.parse(JSON.stringify(obj));
     },
     // 用户状态 切换
     changeStatus(id) {
@@ -145,15 +147,19 @@ export default {
       }).then(() => {
         userRemove(id).then(res => {
           if (res.data.code == 200) {
-            this.$message.success("删除成功");
+            //判断是否是最后一页最后一条数据 是的话页码减一 在发送请求获取列表
+            if (this.tableData.length <= 1) {
+              this.page--;
+            }
             this.getData();
+            this.$message.success("删除成功");
           }
         });
       });
     },
     // 分页 每页条数变化
     handleSizeChange(val) {
-      this.page = 1
+      this.page = 1;
       this.page_size = val;
       this.getData();
     },

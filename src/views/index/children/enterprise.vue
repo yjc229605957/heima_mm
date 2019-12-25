@@ -48,16 +48,29 @@
               <span v-else :style="{color:'red'}">禁用</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作">
+          <!-- v-if判断不在白名单内的角色看不见该标签 -->
+          <el-table-column label="操作" v-if="['超级管理员','管理员'].includes($store.state.userInfo.role)">
             <template slot-scope="scope">
-              <el-button type="text" size="medium" @click="editEntBut(scope.row)">编辑</el-button>
+              <!-- v-power权限黑名单 匹配名单再内的角色不显示该功能 -->
               <el-button
+                v-power="['老师']"
+                type="text"
+                size="medium"
+                @click="editEntBut(scope.row)"
+              >编辑</el-button>
+              <el-button
+                v-power="['老师']"
                 type="text"
                 size="medium"
                 @click="changeState(scope.row.id)"
                 :style="{color:scope.row.status === 0?'#46A0FF':'red'}"
               >{{scope.row.status === 0 ? "启用" : "禁用"}}</el-button>
-              <el-button @click="handleClick(scope.row.id)" type="text" size="medium">删除</el-button>
+              <el-button
+                v-power="['老师']"
+                @click="handleClick(scope.row.id)"
+                type="text"
+                size="medium"
+              >删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -67,7 +80,7 @@
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
           :current-page="page"
-          :page-sizes="[7, 10, 20, 30]"
+          :page-sizes="[6, 10, 20, 30]"
           :page-size="pageSize"
           layout="total, sizes, prev, pager, next, jumper"
           :total="total"
@@ -154,7 +167,7 @@ export default {
       formInline: {
         name: "",
         page: "",
-        limit: 7,
+        limit: 6,
         eid: "",
         username: "",
         status: ""
@@ -202,13 +215,13 @@ export default {
   methods: {
     //搜索栏查询按钮
     EntSerach() {
-      this.formInline.page = 1 
+      this.formInline.page = 1;
       this.page = 1;
-      this.EntList()
+      this.EntList();
     },
     //企业数据列表
     EntList() {
-      // this.formInline.page = 1 
+      // this.formInline.page = 1
       enterpriseList(this.formInline).then(res => {
         if (res.data.code === 200) {
           this.tableData = res.data.data.items;
@@ -283,6 +296,9 @@ export default {
       }).then(() => {
         enterpriseRemove(id).then(res => {
           if (res.data.code === 200) {
+            if (this.tableData.length <= 1) {
+              this.formInline.page--;
+            }
             this.EntList();
             this.$message.success("删除成功");
           }

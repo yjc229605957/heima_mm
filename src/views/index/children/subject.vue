@@ -285,6 +285,10 @@ export default {
       }).then(() => {
         subjectRemove(id).then(res => {
           if (res.data.code === 200) {
+            //判断是否是最后一页最后一条数据 是的话页码减一 在发送请求获取列表
+            if (this.tableData.length <= 1) {
+              this.formInline.page--;
+            }
             this.SubList();
             this.$message.success("删除成功");
           }
@@ -298,7 +302,7 @@ export default {
     },
     //分页插件 当前页发生变动时触发的函数
     handleCurrentChange(val) {
-      this.formInline.page  = val; //当前页
+      this.formInline.page = val; //当前页
       this.SubList();
     }
   },

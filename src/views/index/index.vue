@@ -20,26 +20,16 @@
           :collapse="isCollapse"
           router
         >
-          <el-menu-item index="/index/chart">
-            <i class="el-icon-pie-chart"></i>
-            <span slot="title">数据概览</span>
-          </el-menu-item>
-          <el-menu-item index="/index/user">
-            <i class="el-icon-user"></i>
-            <span slot="title">用户列表</span>
-          </el-menu-item>
-          <el-menu-item index="/index/question">
-            <i class="el-icon-edit-outline"></i>
-            <span slot="title">题库列表</span>
-          </el-menu-item>
-          <el-menu-item index="/index/enterprise">
-            <i class="el-icon-office-building"></i>
-            <span slot="title">企业列表</span>
-          </el-menu-item>
-          <el-menu-item index="/index/subject">
-            <i class="el-icon-notebook-2"></i>
-            <span slot="title">学科列表</span>
-          </el-menu-item>
+          <template v-for="item in children">
+            <el-menu-item
+              :key="item.path"
+              :index="'/index/'+item.path"
+              v-if="item.meta.power.includes(userInfo.role)"
+            >
+              <i :class="item.meta.icon"></i>
+              <span slot="title">{{item.meta.name}}</span>
+            </el-menu-item>
+          </template>
         </el-menu>
       </el-aside>
       <el-main>
@@ -51,14 +41,16 @@
 </template>
 
 <script>
-import { removeToken } from "../../utils/token";
-import { userLogout } from "../../api/user.js";
+import { removeToken } from "@/utils/token";
+import { userLogout } from "@/api/user.js";
+import children from "@/router/children";
 export default {
   data() {
     return {
       isCollapse: false,
       iconClass: "el-icon-s-fold",
-      userInfo: ""
+      userInfo: "",
+      children
     };
   },
   methods: {

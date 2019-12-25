@@ -10,18 +10,8 @@ Vue.use(VueRouter)
 import login from '../views/login/login.vue';
 // 首页
 import index from '../views/index/index.vue';
-
-// 导入首页的子组件 
-//学科页面
-import subject from '../views/index/children/subject.vue';
-//用户页面
-import user from '../views/index/children/user.vue';
-//数据页面
-import chart from '../views/index/children/chart.vue';
-//题库页面
-import question from '../views/index/children/question.vue';
-//企业页面
-import enterprise from '../views/index/children/enterprise.vue';
+//导入首页子路由
+import children from './children';
 
 // 导入token工具
 import {
@@ -45,33 +35,18 @@ import store from '../store/store.js';
 //路由规则
 const routes = [{
     path: '/login',
-    component: login
+    component: login,
+
   },
   {
     path: '/index',
     component: index,
-    redirect:'/index/subject',
-    children: [{
-        path: 'subject',
-        component: subject
-      },
-      {
-        path: 'chart',
-        component: chart
-      },
-      {
-        path: 'user',
-        component: user
-      },
-      {
-        path: 'enterprise',
-        component: enterprise
-      },
-      {
-        path: 'question',
-        component: question
-      },
-    ]
+    redirect: '/index/question',
+    //访问白名单
+    meta: {
+      power: ['超级管理员', '管理员', '老师', '学生']
+    },
+    children
   },
   {
     path: '/',
@@ -98,11 +73,22 @@ router.beforeEach((to, from, next) => {
       //next()
       userInfo().then(res => {
         if (res.data.code === 200) {
-          //如果token正确则跳转到首页并把数据存入vuex仓库
-          next()
-          store.state.userInfo = res.data.data;
-          //头像需要加上基地址
-          store.state.userInfo.avatar = process.env.VUE_APP_BASEURL + '/' + store.state.userInfo.avatar
+          //判断用户状态是否被禁用 禁用就提示 启用就放过去
+          if (res.data.data.status == 0) {
+            Message.error("该账号已被禁用,请联系管理员!");
+          } else {
+            //账户启用的情况下判断该角色是否有权限访问该路由地址
+            // 看在不在路由白名单内 ,在就放过去 不在就提示
+            if (to.meta.power.includes(res.data.data.role)) {
+              //如果token正确则跳转到首页并把数据存入vuex仓库
+              next()
+              store.state.userInfo = res.data.data;
+              //头像需要加上基地址
+              store.state.userInfo.avatar = process.env.VUE_APP_BASEURL + '/' + store.state.userInfo.avatar
+            } else {
+              Message.error('您没有权限访问此页面,请联系管理员!')
+            }
+          }
         } else if (res.data.code === 206) {
           //如果服务器返回token错误则提示并把伪装的token删除后转跳登录页
           Message.error("小样,还想伪装token啊!");

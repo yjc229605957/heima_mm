@@ -1,17 +1,17 @@
 <template>
-  <!-- 新增对话框 -->
-  <el-dialog title="新增题库测试" :visible.sync="addFormVisible" center fullscreen class="addQuestionBox">
-    <!-- 新增表单内容 -->
+  <!-- 编辑对话框 -->
+  <el-dialog title="编辑题库测试" :visible.sync="editFormVisible" center fullscreen class="editQuestionBox" opened="opend">
+    <!-- 编辑表单内容 -->
     <el-form
-      :model="addQuestionForm"
-      :rules="addQuestionrules"
-      ref="addQuestionForm"
-      class="addQuestionForm"
+      :model="editQuestionForm"
+      :rules="editQuestionrules"
+      ref="editQuestionForm"
+      class="editQuestionForm"
       label-position="left"
     >
       <!-- 学科 -->
       <el-form-item label="学科" :label-width="formLabelWidth" prop="subject">
-        <el-select v-model="addQuestionForm.subject" placeholder="请选择学科">
+        <el-select v-model="editQuestionForm.subject" placeholder="请选择学科">
           <el-option
             v-for="(item, index) in this.$parent.subjectList"
             :key="index"
@@ -22,7 +22,7 @@
       </el-form-item>
       <!-- 阶段 -->
       <el-form-item label="阶段" :label-width="formLabelWidth" prop="step">
-        <el-select v-model="addQuestionForm.step" placeholder="请选择阶段">
+        <el-select v-model="editQuestionForm.step" placeholder="请选择阶段">
           <el-option label="初级" :value="1"></el-option>
           <el-option label="中级" :value="2"></el-option>
           <el-option label="高级" :value="3"></el-option>
@@ -30,7 +30,7 @@
       </el-form-item>
       <!-- 企业 -->
       <el-form-item label="企业" :label-width="formLabelWidth" prop="enterprise">
-        <el-select v-model="addQuestionForm.enterprise" placeholder="请选择企业">
+        <el-select v-model="editQuestionForm.enterprise" placeholder="请选择企业">
           <el-option
             v-for="(item, index) in this.$parent.enterpriseList"
             :key="index"
@@ -45,13 +45,13 @@
           size="large"
           :props="{value:'label'}"
           :options="options"
-          v-model="addQuestionForm.city"
+          v-model="editQuestionForm.city"
           @change="handleChange"
         ></el-cascader>
       </el-form-item>
       <!-- 题型 -->
       <el-form-item label="题型" :label-width="formLabelWidth" prop="type">
-        <el-radio-group v-model="addQuestionForm.type">
+        <el-radio-group v-model="editQuestionForm.type">
           <el-radio :label="1">单选</el-radio>
           <el-radio :label="2">多选</el-radio>
           <el-radio :label="3">简答</el-radio>
@@ -59,7 +59,7 @@
       </el-form-item>
       <!-- 难度 -->
       <el-form-item label="难度" :label-width="formLabelWidth" prop="difficulty">
-        <el-radio-group v-model="addQuestionForm.difficulty">
+        <el-radio-group v-model="editQuestionForm.difficulty">
           <el-radio :label="1">简单</el-radio>
           <el-radio :label="2">一般</el-radio>
           <el-radio :label="3">困难</el-radio>
@@ -75,16 +75,16 @@
       <!-- 单选答案 -->
       <el-form-item
         label="单选"
-        v-if="addQuestionForm.type == 1"
+        v-if="editQuestionForm.type == 1"
         :label-width="formLabelWidth"
         prop="select_options"
         class="answerBox"
       >
-        <el-radio-group v-model="addQuestionForm.single_select_answer" class="answer">
+        <el-radio-group v-model="editQuestionForm.single_select_answer" class="answer">
           <!-- 答案A -->
           <div class="radio-box bottom_30">
             <el-radio label="A">A</el-radio>
-            <el-input v-model="addQuestionForm.select_options[0].text"></el-input>
+            <el-input v-model="editQuestionForm.select_options[0].text"></el-input>
             <el-upload
               class="avatar-uploader"
               :action="`http://127.0.0.1/heimamm/public/question/upload`"
@@ -93,8 +93,8 @@
               :before-upload="beforeAvatarUpload"
             >
               <img
-                v-if="addQuestionForm.select_options[0].image"
-                :src="`${baesUrl}/${addQuestionForm.select_options[0].image}`"
+                v-if="editQuestionForm.select_options[0].image"
+                :src="`${baesUrl}/${editQuestionForm.select_options[0].image}`"
                 class="avatar"
               />
               <i v-else class="el-icon-plus avatar-uploader-icon"></i>
@@ -103,7 +103,7 @@
           <!-- 答案B -->
           <div class="radio-box bottom_30">
             <el-radio label="B">B</el-radio>
-            <el-input v-model="addQuestionForm.select_options[1].text"></el-input>
+            <el-input v-model="editQuestionForm.select_options[1].text"></el-input>
             <el-upload
               class="avatar-uploader"
               :action="`http://127.0.0.1/heimamm/public/question/upload`"
@@ -112,8 +112,8 @@
               :before-upload="beforeAvatarUpload"
             >
               <img
-                v-if="addQuestionForm.select_options[1].image"
-                :src="`${baesUrl}/${addQuestionForm.select_options[1].image}`"
+                v-if="editQuestionForm.select_options[1].image"
+                :src="`${baesUrl}/${editQuestionForm.select_options[1].image}`"
                 class="avatar"
               />
               <i v-else class="el-icon-plus avatar-uploader-icon"></i>
@@ -122,7 +122,7 @@
           <!-- 答案C -->
           <div class="radio-box bottom_30">
             <el-radio label="C">C</el-radio>
-            <el-input v-model="addQuestionForm.select_options[2].text"></el-input>
+            <el-input v-model="editQuestionForm.select_options[2].text"></el-input>
             <el-upload
               class="avatar-uploader"
               :action="`http://127.0.0.1/heimamm/public/question/upload`"
@@ -131,8 +131,8 @@
               :before-upload="beforeAvatarUpload"
             >
               <img
-                v-if="addQuestionForm.select_options[2].image"
-                :src="`${baesUrl}/${addQuestionForm.select_options[2].image}`"
+                v-if="editQuestionForm.select_options[2].image"
+                :src="`${baesUrl}/${editQuestionForm.select_options[2].image}`"
                 class="avatar"
               />
               <i v-else class="el-icon-plus avatar-uploader-icon"></i>
@@ -141,7 +141,7 @@
           <!-- 答案D -->
           <div class="radio-box bottom_30">
             <el-radio label="D">D</el-radio>
-            <el-input v-model="addQuestionForm.select_options[3].text"></el-input>
+            <el-input v-model="editQuestionForm.select_options[3].text"></el-input>
             <el-upload
               class="avatar-uploader"
               :action="`http://127.0.0.1/heimamm/public/question/upload`"
@@ -150,8 +150,8 @@
               :before-upload="beforeAvatarUpload"
             >
               <img
-                v-if="addQuestionForm.select_options[3].image"
-                :src="`${baesUrl}/${addQuestionForm.select_options[3].image}`"
+                v-if="editQuestionForm.select_options[3].image"
+                :src="`${baesUrl}/${editQuestionForm.select_options[3].image}`"
                 class="avatar"
               />
               <i v-else class="el-icon-plus avatar-uploader-icon"></i>
@@ -162,16 +162,16 @@
       <!-- 多选答案 -->
       <el-form-item
         label="多选"
-        v-if="addQuestionForm.type == 2"
+        v-if="editQuestionForm.type == 2"
         :label-width="formLabelWidth"
         prop="select_options"
         class="answerBox"
       >
-        <el-checkbox-group v-model="addQuestionForm.multiple_select_answer" class="answer">
+        <el-checkbox-group v-model="editQuestionForm.multiple_select_answer" class="answer">
           <!-- 答案A -->
           <div class="checked-box bottom_30">
             <el-checkbox label="A">A</el-checkbox>
-            <el-input v-model="addQuestionForm.select_options[0].text"></el-input>
+            <el-input v-model="editQuestionForm.select_options[0].text"></el-input>
             <el-upload
               class="avatar-uploader"
               :action="`http://127.0.0.1/heimamm/public/question/upload`"
@@ -180,8 +180,8 @@
               :before-upload="beforeAvatarUpload"
             >
               <img
-                v-if="addQuestionForm.select_options[0].image"
-                :src="`${baesUrl}/${addQuestionForm.select_options[0].image}`"
+                v-if="editQuestionForm.select_options[0].image"
+                :src="`${baesUrl}/${editQuestionForm.select_options[0].image}`"
                 class="avatar"
               />
               <i v-else class="el-icon-plus avatar-uploader-icon"></i>
@@ -190,7 +190,7 @@
           <!-- 答案B -->
           <div class="checked-box bottom_30">
             <el-checkbox label="B">B</el-checkbox>
-            <el-input v-model="addQuestionForm.select_options[1].text"></el-input>
+            <el-input v-model="editQuestionForm.select_options[1].text"></el-input>
             <el-upload
               class="avatar-uploader"
               :action="`http://127.0.0.1/heimamm/public/question/upload`"
@@ -199,8 +199,8 @@
               :before-upload="beforeAvatarUpload"
             >
               <img
-                v-if="addQuestionForm.select_options[1].image"
-                :src="`${baesUrl}/${addQuestionForm.select_options[1].image}`"
+                v-if="editQuestionForm.select_options[1].image"
+                :src="`${baesUrl}/${editQuestionForm.select_options[1].image}`"
                 class="avatar"
               />
               <i v-else class="el-icon-plus avatar-uploader-icon"></i>
@@ -209,7 +209,7 @@
           <!-- 答案C -->
           <div class="checked-box bottom_30">
             <el-checkbox label="C">C</el-checkbox>
-            <el-input v-model="addQuestionForm.select_options[2].text"></el-input>
+            <el-input v-model="editQuestionForm.select_options[2].text"></el-input>
             <el-upload
               class="avatar-uploader"
               :action="`http://127.0.0.1/heimamm/public/question/upload`"
@@ -218,8 +218,8 @@
               :before-upload="beforeAvatarUpload"
             >
               <img
-                v-if="addQuestionForm.select_options[2].image"
-                :src="`${baesUrl}/${addQuestionForm.select_options[2].image}`"
+                v-if="editQuestionForm.select_options[2].image"
+                :src="`${baesUrl}/${editQuestionForm.select_options[2].image}`"
                 class="avatar"
               />
               <i v-else class="el-icon-plus avatar-uploader-icon"></i>
@@ -228,7 +228,7 @@
           <!-- 答案D -->
           <div class="checked-box bottom_30">
             <el-checkbox label="D">D</el-checkbox>
-            <el-input v-model="addQuestionForm.select_options[3].text"></el-input>
+            <el-input v-model="editQuestionForm.select_options[3].text"></el-input>
             <el-upload
               class="avatar-uploader"
               :action="`http://127.0.0.1/heimamm/public/question/upload`"
@@ -237,8 +237,8 @@
               :before-upload="beforeAvatarUpload"
             >
               <img
-                v-if="addQuestionForm.select_options[3].image"
-                :src="`${baesUrl}/${addQuestionForm.select_options[3].image}`"
+                v-if="editQuestionForm.select_options[3].image"
+                :src="`${baesUrl}/${editQuestionForm.select_options[3].image}`"
                 class="avatar"
               />
               <i v-else class="el-icon-plus avatar-uploader-icon"></i>
@@ -249,7 +249,7 @@
       <!-- 简答答案 -->
       <el-form-item
         label="简答"
-        v-if="addQuestionForm.type == 3"
+        v-if="editQuestionForm.type == 3"
         :label-width="formLabelWidth"
         prop="select_options"
         class="answerBox short"
@@ -258,7 +258,7 @@
           type="textarea"
           class="input_answer"
           placeholder="请输入答案"
-          v-model="addQuestionForm.short_answer"
+          v-model="editQuestionForm.short_answer"
           clearable
           resize="none"
         ></el-input>
@@ -277,15 +277,14 @@
           :limit="1"
           :on-exceed="handleExceed"
           :file-list="fileList"
-          :on-remove='removeSuccess'
         >
           <el-button size="small" type="primary">点击上传</el-button>
           <div slot="tip" class="el-upload__tip">只能上传视频格式文件</div>
         </el-upload>
         <video
           class="preview-video"
-          :src="`${baesUrl}/${addQuestionForm.video}`"
-          v-if="addQuestionForm.video"
+          :src="`${baesUrl}/${editQuestionForm.video}`"
+          v-if="editQuestionForm.video"
           controls
         ></video>
       </el-form-item>
@@ -301,7 +300,7 @@
           type="textarea"
           class="input_answer"
           placeholder="请输入答案"
-          v-model="addQuestionForm.remark"
+          v-model="editQuestionForm.remark"
           clearable
           resize="none"
         ></el-input>
@@ -309,8 +308,8 @@
     </el-form>
     <!-- 底部提交按钮 -->
     <div slot="footer" class="dialog-footer">
-      <el-button @click="addFormVisible = false">取 消</el-button>
-      <el-button type="primary" @click="addQuestion">确 定</el-button>
+      <el-button @click="editFormVisible = false">取 消</el-button>
+      <el-button type="primary" @click="editQuestion">确 定</el-button>
     </div>
   </el-dialog>
 </template>
@@ -323,10 +322,10 @@ import wangEditor from "./wangEditor";
 //导入答案解析wang富文本
 import wangEditorTwo from "./wangEditor2";
 //导入增加函数
-import { questionAdd } from "../../../../api/question";
+import { questionEdit } from "../../../../api/question";
 
 export default {
-  name: "addQuestion",
+  name: "editQuestion",
   components: {
     wangEditor,
     wangEditorTwo
@@ -335,19 +334,20 @@ export default {
 
   data() {
     return {
+      //基地址
       baesUrl: process.env.VUE_APP_BASEURL,
       //省市联动数据
       options: regionData,
       selectedOptions: [],
-      //新增窗口数据
-      addQuestionForm: {
+      //编辑窗口数据
+      editQuestionForm: {
         subject: "", //学科
         step: "", //阶段
         enterprise: "", //企业
         city: "", //城市
         type: 1, //题型
         difficulty: 1, //难度
-        title: "", //题目
+        title: "123", //题目
         // 选项 内容 图片
         select_options: [
           { label: "A", text: "", image: "" },
@@ -359,15 +359,15 @@ export default {
         multiple_select_answer: [], //多选答案
         short_answer: "", //简答答案
         remark: "", //题目备注
-        answer_analyze: "", // 答案解析
+        answer_analyze: "123", // 答案解析
         video: "" //解析视频地址
       },
-      //是否显示新增窗口
-      addFormVisible: false,
-      //新增窗口标签宽度
+      //是否显示编辑窗口
+      editFormVisible: false,
+      //编辑窗口标签宽度
       formLabelWidth: "80px",
-      //新增窗口验证规则
-      addQuestionrules: {
+      //编辑窗口验证规则
+      editQuestionrules: {
         subject: [{ required: true, message: "请选择学科", trigger: "change" }],
         step: [{ required: true, message: "请选择阶段", trigger: "change" }],
         enterprise: [
@@ -390,14 +390,14 @@ export default {
   // --------------------------------------------------------------------------------------------
 
   methods: {
-    //新增确认按钮
-    addQuestion() {
+    //编辑确认按钮
+    editQuestion() {
       this.$refs.wangEditor.getData();
-      this.addQuestionForm.answer_analyze = this.$refs.wangEditorTwo.getData();
-      questionAdd(this.addQuestionForm).then(res => {
+      this.editQuestionForm.answer_analyze = this.$refs.wangEditorTwo.getData();
+      questionEdit(this.editQuestionForm).then(res => {
         if (res.data.code == 200) {
-          this.$message.success("新增成功");
-          this.addFormVisible = false;
+          this.$message.success("编辑成功");
+          this.editFormVisible = false;
           this.$parent.getList();
         }
       });
@@ -408,28 +408,28 @@ export default {
     },
     //答案选项上传图片的函数--------------------------------------------------
     handleASuccessA(res, file) {
-      this.addQuestionForm.select_options[0].image = URL.createObjectURL(
+      this.editQuestionForm.select_options[0].image = URL.createObjectURL(
         file.raw
       );
-      this.addQuestionForm.select_options[0].image = res.data.url;
+      this.editQuestionForm.select_options[0].image = res.data.url;
     },
     handleASuccessB(res, file) {
-      this.addQuestionForm.select_options[1].image = URL.createObjectURL(
+      this.editQuestionForm.select_options[1].image = URL.createObjectURL(
         file.raw
       );
-      this.addQuestionForm.select_options[1].image = res.data.url;
+      this.editQuestionForm.select_options[1].image = res.data.url;
     },
     handleASuccessC(res, file) {
-      this.addQuestionForm.select_options[2].image = URL.createObjectURL(
+      this.editQuestionForm.select_options[2].image = URL.createObjectURL(
         file.raw
       );
-      this.addQuestionForm.select_options[2].image = res.data.url;
+      this.editQuestionForm.select_options[2].image = res.data.url;
     },
     handleASuccessD(res, file) {
-      this.addQuestionForm.select_options[3].image = URL.createObjectURL(
+      this.editQuestionForm.select_options[3].image = URL.createObjectURL(
         file.raw
       );
-      this.addQuestionForm.select_options[3].image = res.data.url;
+      this.editQuestionForm.select_options[3].image = res.data.url;
     },
     // 上传之前的判断逻辑-----------------------------------------------------
     beforeAvatarUpload(file) {
@@ -447,7 +447,7 @@ export default {
     //答案解析视频上传函数------------------------------------------------------
     VideoSuccess(res, file) {
       window.console.log(file, res);
-      this.addQuestionForm.video = res.data.url;
+      this.editQuestionForm.video = res.data.url;
     },
     handlePreview(file) {
       window.console.log(file);
@@ -463,8 +463,10 @@ export default {
     beforeRemove(file) {
       return this.$confirm(`确定移除 ${file.name}？`);
     },
-    removeSuccess(){
-      this.addQuestionForm.video = ''
+    //打开动画结束时的opend钩子
+    opend(){
+      this.$refs.wangEditor.pushData()
+      this.editQuestionForm.title
     }
   }
 };
@@ -472,7 +474,7 @@ export default {
 
 //---------------------------------------------------------------------------------
 <style lang="less">
-.addQuestionBox {
+.editQuestionBox {
   .el-dialog {
     .el-dialog__header {
       .el-dialog__close {
@@ -482,7 +484,7 @@ export default {
     .el-dialog__body {
       width: 60%;
       margin: 0 auto;
-      // padding: 31px 300px;
+      // pediting: 31px 300px;
       // 答案区域样式
       .answerBox {
         margin-top: 60px;

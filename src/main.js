@@ -9,6 +9,9 @@ import 'element-ui/lib/theme-chalk/index.css';
 import store from './store/store';
 // 导入filters全局过滤器
 import filters from './filters/filters';
+
+//导入全局自定义指令
+import directives from './directives/directives';
 // 注册一下
 Vue.use(ElementUI);
 
@@ -26,5 +29,7 @@ new Vue({
   //将store挂载到vue实例中
   store,
   //将filters全局过滤器挂载到vue实例中
-  filters
+  filters,
+  //自定义指令
+  directives
 }).$mount('#app')
